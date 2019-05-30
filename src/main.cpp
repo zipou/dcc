@@ -13,9 +13,11 @@ MqttLib mqttlib;
 #include <WifiLib.h>
 WifiLib wifi = WifiLib(WIFISSID, WIFIPASSWD);
 
-#include <DccLib.h>
-DccLib dcc = DccLib(DCC_PINONE, DCC_PINTWO);
+// #include <DccEmitter.h>
+// DccEmitter dcc = DccEmitter(DCC_PINONE, DCC_PINTWO);
 
+#include <DccReceiver.h>
+DccReceiver dccReceiver = DccReceiver(DCC_PINDATA);
 
 bool f0 = false;
 bool f1 = false;
@@ -38,17 +40,10 @@ String getChipId() {
   esp_efuse_mac_get_default(chipid);
   String id = "";
   for (int i = 0; i<= 5; i++) {
-    // Serial.println("chipid[i]");
-    // Serial.println((char) chipid[i]);
-
     id += String(chipid[i], HEX);
   }
   return id;
 }
-
-
-// int in1 = 5;
-// int in2 = 6;
 
 void restartEsp() {
   Serial.println("Restarting ESP");
@@ -59,7 +54,6 @@ void mqttErrorCallback() {
   Serial.println("Error with MQTT, restarting ESP");
   restartEsp();
 }
-
 
 void mqttOnConnectCallback() {
   String topic = getChipId() + "/dcc/#";
@@ -98,7 +92,7 @@ void mqttCallback(const char* topic, const char* message) {
     Serial.println(realSpeed);
     Serial.println("And reverse set to ");
     Serial.println(realReverse);
-    dcc.updateSpeed(realAddress, realSpeed, realReverse);
+    // dcc.updateSpeed(realAddress, realSpeed, realReverse);
   }
 
   if (address && isTypeFunction) {
@@ -122,7 +116,7 @@ void mqttCallback(const char* topic, const char* message) {
     if (index == 11) f11 = value;
     if (index == 12) f12 = value;
 
-    dcc.updateGroup(realAddress, f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12);
+    // dcc.updateGroup(realAddress, f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12);
   }
 
   if (!isTypeFunction && !isTypeSpeed) {
@@ -131,18 +125,21 @@ void mqttCallback(const char* topic, const char* message) {
 
 }
 
+void accessoryCallback (const bool active, const int group) {
+  Serial.print(" Callback called with active ");
+  Serial.print(active);
+  Serial.print(" and group ");
+  Serial.print(group);
+  Serial.println("");
+}
+
 
 void setup() {
-  // pinMode(in1, OUTPUT);
-  // pinMode(in2, OUTPUT);
-  // timer.start();
-  // MqttLibCallback mqttCb = &mqttCallback;
-
   Serial.begin(115200);
 
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(DCC_PINONE, OUTPUT);
-  pinMode(DCC_PINTWO, OUTPUT);
+  // pinMode(DCC_PINONE, OUTPUT);
+  // pinMode(DCC_PINTWO, OUTPUT);
   wifi.connect();
   Serial.println("ClientId");
   Serial.println(getChipId());
@@ -150,25 +147,9 @@ void setup() {
   mqttlib.setOnConnectCallback(mqttOnConnectCallback);
   mqttlib.setOnMessageCallback(&mqttCallback);
   mqttlib.init(MQTT_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD, getChipId().c_str());
-
+  dccReceiver.registerAccessory(3, &accessoryCallback);
 }
 
 void loop() {
   mqttlib.loop();
-  dcc.loop();
-  // if (trigger) {
-    // Serial.println("Sending");
-  //   updateSpeed(myAddress, mySpeed, myReverse);
-  //   trigger = false;
-  // } else {
-  //   sendIdlePacket();
-  // }
-
-  // int sendAddress[10];
-  // generateAddress(myAddress, sendAddress);
-  // sendEmptyPacket(sendAddress);
-
-     // delay(500);
-    // updateSpeed(myAddress, mySpeed, reverse);
-  // updateGroup(myAddress, false, false, false, false, false, false, false, false, false, false, false, false, false);
 }

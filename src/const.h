@@ -12,3 +12,5 @@
 // #define DCC_PINTWO (int) 6
 #define DCC_PINONE (int) 26
 #define DCC_PINTWO (int) 27
+
+#define DCC_PINDATA (int) 27
