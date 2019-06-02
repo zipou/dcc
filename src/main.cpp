@@ -19,6 +19,12 @@ WifiLib wifi = WifiLib(WIFISSID, WIFIPASSWD);
 #include <DccReceiver.h>
 DccReceiver dccReceiver = DccReceiver(DCC_PINDATA);
 
+#include <TrafficLight.h>
+TrafficLight trafficLight = TrafficLight(23, 22, 21);
+
+#include <IrDetector.h>
+IrDetector irDetector = IrDetector(19);
+
 bool f0 = false;
 bool f1 = false;
 bool f2 = false;
@@ -143,13 +149,19 @@ void setup() {
   wifi.connect();
   Serial.println("ClientId");
   Serial.println(getChipId());
-  mqttlib.setErrorCallback(mqttErrorCallback);
-  mqttlib.setOnConnectCallback(mqttOnConnectCallback);
+  mqttlib.setErrorCallback(&mqttErrorCallback);
+  mqttlib.setOnConnectCallback(&mqttOnConnectCallback);
   mqttlib.setOnMessageCallback(&mqttCallback);
   mqttlib.init(MQTT_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD, getChipId().c_str());
   dccReceiver.registerAccessory(3, &accessoryCallback);
 }
 
 void loop() {
-  mqttlib.loop();
+  // mqttlib.loop();
+  trafficLight.setState(RED);
+  delay(2000);
+  trafficLight.setState(ORANGE);
+  delay(1000);
+  trafficLight.setState(GREEN);
+  delay(4000);
 }
